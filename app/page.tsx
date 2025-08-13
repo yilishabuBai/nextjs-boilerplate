@@ -49,6 +49,12 @@ export default function Home() {
           >
             阅读文档
           </a>
+          <a
+            className="rounded-full border border-solid border-blue-600 text-blue-600 transition-colors flex items-center justify-center hover:bg-blue-50 dark:hover:bg-blue-900/20 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto"
+            href="/about"
+          >
+            关于我们
+          </a>
         </div>
       </main>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">

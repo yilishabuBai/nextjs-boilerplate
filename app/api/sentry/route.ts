@@ -49,6 +49,32 @@ interface SentryEvent {
   };
 }
 
+// CORS 配置
+const CORS_ORIGINS = [
+  'https://sentry.58.com',
+  'http://sentry.58.com',
+];
+
+// 检查请求来源是否允许
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  return CORS_ORIGINS.some(allowedOrigin =>
+    origin === allowedOrigin || origin.endsWith('.58.com')
+  );
+}
+
+// 添加 CORS 头部
+function addCorsHeaders(response: NextResponse, origin: string | null): NextResponse {
+  if (origin && isAllowedOrigin(origin)) {
+    response.headers.set('Access-Control-Allow-Origin', origin);
+  }
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, sentry-hook-signature, Authorization');
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  response.headers.set('Access-Control-Max-Age', '86400'); // 24小时
+  return response;
+}
+
 // 验证 Sentry webhook 签名（可选，需要配置 SENTRY_WEBHOOK_SECRET）
 function verifySignature(request: NextRequest, body: string): boolean {
   const signature = request.headers.get('sentry-hook-signature');
@@ -104,15 +130,18 @@ function processSentryEvent(event: SentryEvent) {
 
 // POST: 接收 Sentry webhook
 export async function POST(request: NextRequest) {
+  const origin = request.headers.get('origin');
+
   try {
     const body = await request.text();
 
     // 验证请求签名
     if (!verifySignature(request, body)) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: '无效的签名' },
         { status: 401 }
       );
+      return addCorsHeaders(response, origin);
     }
 
     // 解析 JSON 数据
@@ -120,25 +149,27 @@ export async function POST(request: NextRequest) {
     try {
       data = JSON.parse(body);
     } catch (error) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: '无效的 JSON 数据' },
         { status: 400 }
       );
+      return addCorsHeaders(response, origin);
     }
 
     // 验证必要字段
     if (!data.id || !data.project || !data.message) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: '缺少必要字段' },
         { status: 400 }
       );
+      return addCorsHeaders(response, origin);
     }
 
     // 处理 Sentry 事件
     processSentryEvent(data as SentryEvent);
 
     // 返回成功响应
-    return NextResponse.json({
+    const response = NextResponse.json({
       message: 'Sentry webhook 接收成功',
       event_id: data.id,
       project: data.project,
@@ -146,35 +177,46 @@ export async function POST(request: NextRequest) {
       status: 'success'
     }, { status: 200 });
 
+    return addCorsHeaders(response, origin);
+
   } catch (error) {
     console.error('Sentry webhook 处理错误:', error);
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         error: '内部服务器错误',
         message: error instanceof Error ? error.message : '未知错误'
       },
       { status: 500 }
     );
+
+    return addCorsHeaders(response, origin);
   }
 }
 
 // GET: 健康检查接口
-export async function GET() {
-  return NextResponse.json({
+export async function GET(request: NextRequest) {
+  const origin = request.headers.get('origin');
+
+  const response = NextResponse.json({
     message: 'Sentry webhook 接口正常运行',
     timestamp: new Date().toISOString(),
-    status: 'healthy'
+    status: 'healthy',
+    cors_enabled: true,
+    allowed_origins: CORS_ORIGINS
   });
+
+  return addCorsHeaders(response, origin);
 }
 
-// 可选：添加其他 HTTP 方法支持
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Allow': 'POST, GET, OPTIONS',
-      'Content-Type': 'application/json',
-    },
-  });
+// OPTIONS: 预检请求处理
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin');
+
+  if (!isAllowedOrigin(origin)) {
+    return new NextResponse(null, { status: 403 });
+  }
+
+  const response = new NextResponse(null, { status: 200 });
+  return addCorsHeaders(response, origin);
 }

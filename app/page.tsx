@@ -55,6 +55,12 @@ export default function Home() {
           >
             关于我们
           </a>
+          <a
+            className="rounded-full border border-solid border-purple-600 text-purple-600 transition-colors flex items-center justify-center hover:bg-purple-50 dark:hover:bg-purple-900/20 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto"
+            href="/sentry-test"
+          >
+            Sentry 测试
+          </a>
         </div>
       </main>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">

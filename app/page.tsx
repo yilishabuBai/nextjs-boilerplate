@@ -61,6 +61,12 @@ export default function Home() {
           >
             Sentry 测试
           </a>
+          <a
+            className="rounded-full border border-solid border-green-600 text-green-600 transition-colors flex items-center justify-center hover:bg-green-50 dark:hover:bg-green-900/20 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto"
+            href="/interactive-video"
+          >
+            互动影游
+          </a>
         </div>
       </main>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">

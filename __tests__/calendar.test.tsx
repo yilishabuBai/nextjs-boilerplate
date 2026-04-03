@@ -82,8 +82,9 @@ describe('CalendarPage 日历页面', () => {
     // 查找今天的日期（15 号）
     const todayElement = screen.getByText('15');
     
-    // 检查是否有今天的样式（bg-blue-500）
-    expect(todayElement).toHaveClass('bg-blue-500');
+    // 检查是否有今天的样式（渐变背景）
+    expect(todayElement).toHaveClass('from-amber-400');
+    expect(todayElement).toHaveClass('to-orange-500');
   });
 
   test('✅ 周末日期显示为红色', () => {
@@ -93,7 +94,7 @@ describe('CalendarPage 日历页面', () => {
     // 使用 getAllByText 获取所有匹配的元素，然后检查第一个（当月的）
     const weekendDays = screen.getAllByText('4');
     // 第一个 4 号应该是当月的周六
-    expect(weekendDays[0]).toHaveClass('text-red-500');
+    expect(weekendDays[0]).toHaveClass('text-rose-600');
   });
 
   test('✅ 非当月日期显示为灰色', () => {
@@ -103,5 +104,55 @@ describe('CalendarPage 日历页面', () => {
     const otherMonthDays = screen.getAllByText('30');
     // 至少有一个 30 号是其他月份的
     expect(otherMonthDays.length).toBeGreaterThan(0);
+    // 检查是否有其他月份的样式
+    expect(otherMonthDays[0]).toHaveClass('bg-slate-50');
+  });
+
+  test('✅ 按钮满足触摸友好要求（最小 44px）', () => {
+    render(<CalendarPage />);
+    
+    // 检查上个月按钮有 min-h-[44px] 类
+    const prevButton = screen.getByLabelText('上个月');
+    expect(prevButton).toHaveClass('min-h-[44px]');
+    
+    // 检查下个月按钮有 min-h-[44px] 类
+    const nextButton = screen.getByLabelText('下个月');
+    expect(nextButton).toHaveClass('min-h-[44px]');
+    
+    // 检查今天按钮有 min-h-[44px] 类
+    const todayButton = screen.getByText('回到今天');
+    expect(todayButton).toHaveClass('min-h-[44px]');
+  });
+
+  test('✅ 响应式布局正确渲染', () => {
+    const { container } = render(<CalendarPage />);
+    
+    // 检查容器是否有响应式 padding
+    const mainContainer = container.firstChild as HTMLElement;
+    expect(mainContainer).toHaveClass('px-3');
+    expect(mainContainer).toHaveClass('sm:px-4');
+    expect(mainContainer).toHaveClass('lg:px-6');
+    
+    // 检查日历卡片是否有响应式圆角
+    const calendarCard = container.querySelector('.bg-white');
+    expect(calendarCard).toHaveClass('rounded-xl');
+    expect(calendarCard).toHaveClass('sm:rounded-2xl');
+  });
+
+  test('✅ 颜色方案符合无障碍要求', () => {
+    render(<CalendarPage />);
+    
+    // 检查周末颜色
+    const weekendElement = screen.getByText('日');
+    expect(weekendElement).toHaveClass('text-rose-600');
+    
+    // 检查工作日颜色
+    const weekdayElement = screen.getByText('一');
+    expect(weekdayElement).toHaveClass('text-slate-700');
+    
+    // 检查今天的高亮色
+    const todayElement = screen.getByText('15');
+    expect(todayElement).toHaveClass('from-amber-400');
+    expect(todayElement).toHaveClass('to-orange-500');
   });
 });

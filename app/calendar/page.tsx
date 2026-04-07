@@ -128,31 +128,31 @@ export default function CalendarPage() {
   const calendarDays = getCalendarData(currentYear, currentMonth);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-4 sm:py-6 lg:py-8 px-3 sm:px-4 lg:px-6">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 py-1 sm:py-1.5 lg:py-2 px-1 sm:px-1.5">
       <div className="max-w-3xl sm:max-w-4xl mx-auto">
         {/* 页面标题 */}
-        <div className="text-center mb-4 sm:mb-6 lg:mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 mb-2">
+        <div className="text-center mb-1 sm:mb-1.5 lg:mb-2">
+          <h1 className="text-base sm:text-lg lg:text-xl font-bold text-slate-800 mb-0.5">
             📅 日历
           </h1>
-          <p className="text-sm sm:text-base text-slate-600">
+          <p className="text-[10px] sm:text-xs text-slate-600">
             查看和管理您的日程安排
           </p>
         </div>
 
         {/* 日历卡片 */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl overflow-hidden border border-slate-200">
+        <div className="bg-white rounded-md sm:rounded-lg shadow-sm overflow-hidden border border-slate-200">
           {/* 日历头部 - 月份选择和导航 */}
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-500 px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+          <div className="bg-gradient-to-r from-teal-500 to-cyan-500 px-1.5 sm:px-2 lg:px-2.5 py-1 sm:py-1.5">
             <div className="flex items-center justify-between">
               {/* 上个月按钮 */}
               <button
                 onClick={goToPrevMonth}
-                className="p-2 sm:p-2 lg:p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors text-white min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-0.5 sm:p-1 rounded-sm bg-white/20 hover:bg-white/30 transition-colors text-white min-w-[18px] min-h-[18px] flex items-center justify-center"
                 aria-label="上个月"
               >
                 <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
+                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-3.5 lg:h-3.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -167,8 +167,8 @@ export default function CalendarPage() {
               </button>
 
               {/* 当前月份和年份显示 */}
-              <div className="text-center flex-1 mx-2 sm:mx-4">
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
+              <div className="text-center flex-1 mx-0.5 sm:mx-1 lg:mx-1.5">
+                <h2 className="text-sm sm:text-base lg:text-lg font-bold text-white">
                   {formatMonthName(currentMonth)} {currentYear}
                 </h2>
               </div>
@@ -176,11 +176,11 @@ export default function CalendarPage() {
               {/* 下个月按钮 */}
               <button
                 onClick={goToNextMonth}
-                className="p-2 sm:p-2 lg:p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors text-white min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-0.5 sm:p-1 rounded-sm bg-white/20 hover:bg-white/30 transition-colors text-white min-w-[18px] min-h-[18px] flex items-center justify-center"
                 aria-label="下个月"
               >
                 <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
+                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-3.5 lg:h-3.5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -196,10 +196,10 @@ export default function CalendarPage() {
             </div>
 
             {/* 今天按钮 */}
-            <div className="mt-3 sm:mt-4 text-center">
+            <div className="mt-1 sm:mt-1.5 text-center">
               <button
                 onClick={goToToday}
-                className="px-3 sm:px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-white font-medium transition-colors min-h-[44px]"
+                className="px-1.5 sm:px-2 py-0.5 bg-white/20 hover:bg-white/30 rounded-sm text-white font-medium transition-colors min-h-[18px] text-[10px] sm:text-xs"
               >
                 回到今天
               </button>
@@ -207,17 +207,17 @@ export default function CalendarPage() {
           </div>
 
           {/* 日历主体 */}
-          <div className="p-3 sm:p-4 lg:p-6">
+          <div className="p-1 sm:p-1.5 lg:p-2">
             {/* 星期标题 */}
-            <div className="grid grid-cols-7 mb-2 sm:mb-3 lg:mb-4">
+            <div className="grid grid-cols-7 mb-0.5 sm:mb-1">
               {weekDays.map((day, index) => {
                 const isWeekend = index === 0 || index === 6;
                 return (
                   <div
                     key={day}
-                    className={`text-center py-1 sm:py-2 text-xs sm:text-sm font-semibold ${
+                    className={`text-center py-0.5 text-[9px] sm:text-[10px] font-semibold ${
                       isWeekend
-                        ? "text-rose-600"
+                        ? "text-teal-600"
                         : "text-slate-700"
                     }`}
                   >
@@ -228,7 +228,7 @@ export default function CalendarPage() {
             </div>
 
             {/* 日期网格 */}
-            <div className="grid grid-cols-7 gap-1 sm:gap-1.5 lg:gap-2">
+            <div className="grid grid-cols-7 gap-0.5">
               {calendarDays.map((date, index) => {
                 const isWeekend = index % 7 === 0 || index % 7 === 6;
                 
@@ -236,20 +236,20 @@ export default function CalendarPage() {
                   <div
                     key={index}
                     className={`
-                      aspect-square flex items-center justify-center rounded-md sm:rounded-lg 
-                      text-xs sm:text-sm lg:text-base font-medium
+                      aspect-square flex items-center justify-center rounded-xs sm:rounded-sm 
+                      text-[8px] sm:text-[10px] lg:text-xs font-medium
                       transition-all duration-200
-                      min-h-[40px] sm:min-h-[44px] lg:min-h-[48px]
+                      min-h-[14px] sm:min-h-[16px] lg:min-h-[18px]
                       ${date.month === "current"
-                        ? "bg-white border border-slate-200 hover:border-indigo-400 hover:shadow-md cursor-pointer"
+                        ? "bg-white border border-slate-200 hover:border-cyan-400 hover:shadow-sm cursor-pointer"
                         : "bg-slate-50 text-slate-400 border border-transparent"
                       }
                       ${date.isToday
-                        ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white border-amber-500 hover:from-amber-500 hover:to-orange-600 shadow-sm"
+                        ? "bg-gradient-to-br from-cyan-400 to-blue-500 text-white border-cyan-500 hover:from-cyan-500 hover:to-blue-600 shadow-sm"
                         : ""
                       }
                       ${isWeekend && date.month === "current" && !date.isToday
-                        ? "text-rose-600 font-semibold"
+                        ? "text-teal-600 font-semibold"
                         : ""
                       }
                     `}
@@ -262,22 +262,22 @@ export default function CalendarPage() {
           </div>
 
           {/* 日历底部图例 */}
-          <div className="bg-slate-50 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200">
-            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 lg:gap-6 text-xs sm:text-sm">
+          <div className="bg-slate-50 px-2 sm:px-2.5 py-1 sm:py-1.5 border-t border-slate-200">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px]">
               <div className="flex items-center">
-                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-br from-amber-400 to-orange-500 rounded mr-2"></div>
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-sm mr-0.5"></div>
                 <span className="text-slate-600">今天</span>
               </div>
               <div className="flex items-center">
-                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-white border border-slate-200 rounded mr-2"></div>
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white border border-slate-200 rounded-sm mr-0.5"></div>
                 <span className="text-slate-600">当前月份</span>
               </div>
               <div className="flex items-center">
-                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-slate-50 rounded mr-2"></div>
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-slate-50 rounded-sm mr-0.5"></div>
                 <span className="text-slate-600">其他月份</span>
               </div>
               <div className="flex items-center">
-                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-white text-rose-600 border border-slate-200 rounded mr-2 flex items-center justify-center text-xs font-semibold">6</div>
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white text-teal-600 border border-slate-200 rounded-sm mr-0.5 flex items-center justify-center text-[7px] sm:text-[9px] font-semibold">6</div>
                 <span className="text-slate-600">周末</span>
               </div>
             </div>
@@ -285,13 +285,13 @@ export default function CalendarPage() {
         </div>
 
         {/* 返回首页链接 */}
-        <div className="text-center mt-6 sm:mt-8">
+        <div className="text-center mt-2 sm:mt-3">
           <a
             href="/"
-            className="inline-flex items-center text-indigo-600 hover:text-indigo-700 font-medium text-sm sm:text-base"
+            className="inline-flex items-center text-teal-600 hover:text-teal-700 font-medium text-[10px] sm:text-xs"
           >
             <svg
-              className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
+              className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

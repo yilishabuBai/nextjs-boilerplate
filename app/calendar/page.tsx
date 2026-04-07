@@ -130,10 +130,10 @@ export default function CalendarPage() {
   const calendarDays = getCalendarData(currentYear, currentMonth);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-teal-50 py-2 sm:py-3 lg:py-4 px-2 sm:px-3 lg:px-4">
-      <div className="max-w-3xl sm:max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-teal-50 p-2 sm:p-3 lg:p-4">
+      <div className="max-w-3xl sm:max-w-4xl mx-auto h-full flex flex-col">
         {/* 页面标题 */}
-        <div className="text-center mb-2 sm:mb-3 lg:mb-4">
+        <div className="text-center mb-2 sm:mb-3 lg:mb-4 flex-shrink-0">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-800 mb-1">
             📅 日历
           </h1>
@@ -142,8 +142,8 @@ export default function CalendarPage() {
           </p>
         </div>
 
-        {/* 日历卡片 */}
-        <div className="bg-white rounded-lg sm:rounded-xl shadow-md sm:shadow-lg overflow-hidden border border-slate-200">
+        {/* 日历卡片 - 使用 flex-1 填充可用高度 */}
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-md sm:shadow-lg overflow-hidden border border-slate-200 flex-1 flex flex-col w-full">
           {/* 日历头部 - 月份选择和导航 */}
           <div className="bg-gradient-to-r from-teal-500 to-emerald-500 px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
             <div className="flex items-center justify-between">
@@ -208,10 +208,10 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          {/* 日历主体 */}
-          <div className="p-2 sm:p-3 lg:p-4">
+          {/* 日历主体 - 使用 flex-1 填充剩余高度 */}
+          <div className="p-2 sm:p-3 lg:p-4 flex-1 flex flex-col min-h-0">
             {/* 星期标题 */}
-            <div className="grid grid-cols-7 mb-1 sm:mb-2 lg:mb-3">
+            <div className="grid grid-cols-7 mb-1 sm:mb-2 lg:mb-3 flex-shrink-0">
               {weekDays.map((day, index) => {
                 const isWeekend = index === 0 || index === 6;
                 return (
@@ -229,8 +229,8 @@ export default function CalendarPage() {
               })}
             </div>
 
-            {/* 日期网格 */}
-            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 lg:gap-1.5">
+            {/* 日期网格 - 使用 flex-1 和 grid-rows-fill 填充可用空间 */}
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 lg:gap-1.5 flex-1 min-h-0">
               {calendarDays.map((date, index) => {
                 const isWeekend = index % 7 === 0 || index % 7 === 6;
                 
@@ -238,7 +238,7 @@ export default function CalendarPage() {
                   <div
                     key={index}
                     className={`
-                      aspect-square flex items-center justify-center rounded-sm sm:rounded-md 
+                      aspect-square sm:aspect-auto sm:h-full flex items-center justify-center rounded-sm sm:rounded-md 
                       text-[10px] sm:text-xs lg:text-sm font-medium
                       transition-all duration-200
                       min-h-[28px] sm:min-h-[32px] lg:min-h-[36px]
@@ -263,8 +263,8 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          {/* 日历底部图例 */}
-          <div className="bg-slate-50 px-3 sm:px-4 py-2 sm:py-3 border-t border-slate-200">
+          {/* 日历底部图例 - 固定高度不压缩 */}
+          <div className="bg-slate-50 px-3 sm:px-4 py-2 sm:py-3 border-t border-slate-200 flex-shrink-0">
             <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-4 text-[10px] sm:text-xs">
               <div className="flex items-center">
                 <div className="w-2 h-2 sm:w-3 sm:h-3 bg-gradient-to-br from-teal-400 to-emerald-500 rounded mr-1.5"></div>

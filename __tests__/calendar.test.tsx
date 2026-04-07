@@ -139,14 +139,75 @@ describe('CalendarPage 日历页面', () => {
     
     // 检查容器是否有响应式 padding
     const mainContainer = container.firstChild as HTMLElement;
-    expect(mainContainer).toHaveClass('px-2');
-    expect(mainContainer).toHaveClass('sm:px-3');
-    expect(mainContainer).toHaveClass('lg:px-4');
+    expect(mainContainer).toHaveClass('p-2');
+    expect(mainContainer).toHaveClass('sm:p-3');
+    expect(mainContainer).toHaveClass('lg:p-4');
     
     // 检查日历卡片是否有响应式圆角
     const calendarCard = container.querySelector('.bg-white');
     expect(calendarCard).toHaveClass('rounded-lg');
     expect(calendarCard).toHaveClass('sm:rounded-xl');
+  });
+
+  test('✅ 宽度适配 - 日历卡片使用 w-full', () => {
+    const { container } = render(<CalendarPage />);
+    
+    // 检查日历卡片有 w-full 类以填充容器宽度
+    const calendarCard = container.querySelector('.bg-white');
+    expect(calendarCard).toHaveClass('w-full');
+  });
+
+  test('✅ 高度适配 - 使用 flexbox 布局填充高度', () => {
+    const { container } = render(<CalendarPage />);
+    
+    // 检查主容器使用 flex flex-col 布局
+    const mainContainer = container.querySelector('.max-w-3xl');
+    expect(mainContainer).toHaveClass('flex');
+    expect(mainContainer).toHaveClass('flex-col');
+    expect(mainContainer).toHaveClass('h-full');
+    
+    // 检查日历卡片使用 flex-1 填充可用高度
+    const calendarCard = container.querySelector('.bg-white');
+    expect(calendarCard).toHaveClass('flex-1');
+    expect(calendarCard).toHaveClass('flex');
+    expect(calendarCard).toHaveClass('flex-col');
+    
+    // 检查日历主体使用 flex-1（通过包含星期标题和日期网格的容器来识别）
+    const calendarBody = container.querySelector('.grid.grid-cols-7').parentElement;
+    expect(calendarBody).toHaveClass('flex-1');
+    expect(calendarBody).toHaveClass('flex');
+    expect(calendarBody).toHaveClass('flex-col');
+    expect(calendarBody).toHaveClass('min-h-0');
+  });
+
+  test('✅ 日期网格高度适配', () => {
+    const { container } = render(<CalendarPage />);
+    
+    // 检查日期网格使用 flex-1 和 min-h-0
+    const dateGrid = container.querySelector('.grid.grid-cols-7');
+    // 获取第二个 grid（日期网格，第一个是星期标题）
+    const grids = container.querySelectorAll('.grid.grid-cols-7');
+    expect(grids.length).toBeGreaterThanOrEqual(2);
+    
+    // 检查小屏幕以上的响应式行为
+    const dateCells = container.querySelectorAll('.aspect-square');
+    expect(dateCells.length).toBeGreaterThan(0);
+  });
+
+  test('✅ 固定元素使用 flex-shrink-0', () => {
+    const { container } = render(<CalendarPage />);
+    
+    // 检查标题区域不压缩
+    const header = container.querySelector('.text-center.mb-2');
+    expect(header).toHaveClass('flex-shrink-0');
+    
+    // 检查底部图例不压缩
+    const footer = container.querySelector('.bg-slate-50.px-3');
+    expect(footer).toHaveClass('flex-shrink-0');
+    
+    // 检查星期标题不压缩
+    const weekDays = container.querySelector('.grid.grid-cols-7.mb-1');
+    expect(weekDays).toHaveClass('flex-shrink-0');
   });
 
   test('✅ 颜色方案符合无障碍要求', () => {

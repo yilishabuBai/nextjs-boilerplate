@@ -82,12 +82,6 @@ describe('CalendarPage 日历页面', () => {
     // 查找今天的日期（15 号）
     const todayElement = screen.getByText('15');
     
-    // 检查是否有今天的样式（渐变背景）
-    expect(todayElement).toHaveClass('from-cyan-400');
-    expect(todayElement).toHaveClass('to-blue-500');
-  });
-
-  test('✅ 周末日期显示为 teal 色', () => {
     // 检查是否有今天的样式（青绿色渐变背景）
     expect(todayElement).toHaveClass('from-teal-400');
     expect(todayElement).toHaveClass('to-emerald-500');
@@ -100,7 +94,7 @@ describe('CalendarPage 日历页面', () => {
     // 使用 getAllByText 获取所有匹配的元素，然后检查第一个（当月的）
     const weekendDays = screen.getAllByText('4');
     // 第一个 4 号应该是当月的周六
-    expect(weekendDays[0]).toHaveClass('text-teal-600');
+    expect(weekendDays[0]).toHaveClass('text-emerald-600');
   });
 
   test('✅ 非当月日期显示为灰色', () => {
@@ -114,20 +108,6 @@ describe('CalendarPage 日历页面', () => {
     expect(otherMonthDays[0]).toHaveClass('bg-slate-50');
   });
 
-  test('✅ 按钮紧凑尺寸正确（极致紧凑版）', () => {
-    render(<CalendarPage />);
-    
-    // 检查上个月按钮有 min-h-[18px] 类
-    const prevButton = screen.getByLabelText('上个月');
-    expect(prevButton).toHaveClass('min-h-[18px]');
-    
-    // 检查下个月按钮有 min-h-[18px] 类
-    const nextButton = screen.getByLabelText('下个月');
-    expect(nextButton).toHaveClass('min-h-[18px]');
-    
-    // 检查今天按钮有 min-h-[18px] 类
-    const todayButton = screen.getByText('回到今天');
-    expect(todayButton).toHaveClass('min-h-[18px]');
   test('✅ 按钮满足触摸友好要求（最小 36px）', () => {
     render(<CalendarPage />);
     
@@ -144,25 +124,26 @@ describe('CalendarPage 日历页面', () => {
     expect(todayButton).toHaveClass('min-h-[36px]');
   });
 
-  test('✅ 响应式布局正确渲染（紧凑版）', () => {
+  test('✅ 日期格子尺寸正确', () => {
+    render(<CalendarPage />);
+    
+    // 检查日期格子有正确的 min-height 类
+    const dateCell = screen.getByText('15');
+    expect(dateCell).toHaveClass('min-h-[28px]');
+    expect(dateCell).toHaveClass('sm:min-h-[32px]');
+    expect(dateCell).toHaveClass('lg:min-h-[36px]');
+  });
+
+  test('✅ 响应式布局正确渲染', () => {
     const { container } = render(<CalendarPage />);
     
-    // 检查容器是否有响应式 padding（紧凑版）
-    const mainContainer = container.firstChild as HTMLElement;
-    expect(mainContainer).toHaveClass('px-1');
-    expect(mainContainer).toHaveClass('sm:px-1.5');
-    
-    // 检查日历卡片是否有响应式圆角（紧凑版）
-    const calendarCard = container.querySelector('.bg-white');
-    expect(calendarCard).toHaveClass('rounded-md');
-    expect(calendarCard).toHaveClass('sm:rounded-lg');
-    // 检查容器是否有响应式 padding（缩小后）
+    // 检查容器是否有响应式 padding
     const mainContainer = container.firstChild as HTMLElement;
     expect(mainContainer).toHaveClass('px-2');
     expect(mainContainer).toHaveClass('sm:px-3');
     expect(mainContainer).toHaveClass('lg:px-4');
     
-    // 检查日历卡片是否有响应式圆角（缩小后）
+    // 检查日历卡片是否有响应式圆角
     const calendarCard = container.querySelector('.bg-white');
     expect(calendarCard).toHaveClass('rounded-lg');
     expect(calendarCard).toHaveClass('sm:rounded-xl');
@@ -173,7 +154,6 @@ describe('CalendarPage 日历页面', () => {
     
     // 检查周末颜色（青绿色）
     const weekendElement = screen.getByText('日');
-    expect(weekendElement).toHaveClass('text-teal-600');
     expect(weekendElement).toHaveClass('text-emerald-600');
     
     // 检查工作日颜色
@@ -182,8 +162,6 @@ describe('CalendarPage 日历页面', () => {
     
     // 检查今天的高亮色（青绿色渐变）
     const todayElement = screen.getByText('15');
-    expect(todayElement).toHaveClass('from-cyan-400');
-    expect(todayElement).toHaveClass('to-blue-500');
     expect(todayElement).toHaveClass('from-teal-400');
     expect(todayElement).toHaveClass('to-emerald-500');
   });

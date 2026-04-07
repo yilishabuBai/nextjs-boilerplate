@@ -128,6 +128,14 @@ export default function CalendarPage() {
   const calendarDays = getCalendarData(currentYear, currentMonth);
 
   return (
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 py-1 sm:py-1.5 lg:py-2 px-1 sm:px-1.5">
+      <div className="max-w-3xl sm:max-w-4xl mx-auto">
+        {/* 页面标题 */}
+        <div className="text-center mb-1 sm:mb-1.5 lg:mb-2">
+          <h1 className="text-base sm:text-lg lg:text-xl font-bold text-slate-800 mb-0.5">
+            📅 日历
+          </h1>
+          <p className="text-[10px] sm:text-xs text-slate-600">
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-teal-50 py-2 sm:py-3 lg:py-4 px-2 sm:px-3 lg:px-4">
       <div className="max-w-3xl sm:max-w-4xl mx-auto">
         {/* 页面标题 */}
@@ -141,6 +149,9 @@ export default function CalendarPage() {
         </div>
 
         {/* 日历卡片 */}
+        <div className="bg-white rounded-md sm:rounded-lg shadow-sm overflow-hidden border border-slate-200">
+          {/* 日历头部 - 月份选择和导航 */}
+          <div className="bg-gradient-to-r from-teal-500 to-cyan-500 px-1.5 sm:px-2 lg:px-2.5 py-1 sm:py-1.5">
         <div className="bg-white rounded-lg sm:rounded-xl shadow-md sm:shadow-lg overflow-hidden border border-slate-200">
           {/* 日历头部 - 月份选择和导航 */}
           <div className="bg-gradient-to-r from-teal-500 to-emerald-500 px-2 sm:px-3 lg:px-4 py-2 sm:py-3">
@@ -148,6 +159,11 @@ export default function CalendarPage() {
               {/* 上个月按钮 */}
               <button
                 onClick={goToPrevMonth}
+                className="p-0.5 sm:p-1 rounded-sm bg-white/20 hover:bg-white/30 transition-colors text-white min-w-[18px] min-h-[18px] flex items-center justify-center"
+                aria-label="上个月"
+              >
+                <svg
+                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-3.5 lg:h-3.5"
                 className="p-1 sm:p-1.5 lg:p-2 rounded-md bg-white/20 hover:bg-white/30 transition-colors text-white min-w-[36px] min-h-[36px] flex items-center justify-center"
                 aria-label="上个月"
               >
@@ -167,6 +183,8 @@ export default function CalendarPage() {
               </button>
 
               {/* 当前月份和年份显示 */}
+              <div className="text-center flex-1 mx-0.5 sm:mx-1 lg:mx-1.5">
+                <h2 className="text-sm sm:text-base lg:text-lg font-bold text-white">
               <div className="text-center flex-1 mx-2 sm:mx-3">
                 <h2 className="text-base sm:text-lg lg:text-xl font-bold text-white">
                   {formatMonthName(currentMonth)} {currentYear}
@@ -176,6 +194,11 @@ export default function CalendarPage() {
               {/* 下个月按钮 */}
               <button
                 onClick={goToNextMonth}
+                className="p-0.5 sm:p-1 rounded-sm bg-white/20 hover:bg-white/30 transition-colors text-white min-w-[18px] min-h-[18px] flex items-center justify-center"
+                aria-label="下个月"
+              >
+                <svg
+                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 lg:w-3.5 lg:h-3.5"
                 className="p-1 sm:p-1.5 lg:p-2 rounded-md bg-white/20 hover:bg-white/30 transition-colors text-white min-w-[36px] min-h-[36px] flex items-center justify-center"
                 aria-label="下个月"
               >
@@ -196,6 +219,10 @@ export default function CalendarPage() {
             </div>
 
             {/* 今天按钮 */}
+            <div className="mt-1 sm:mt-1.5 text-center">
+              <button
+                onClick={goToToday}
+                className="px-1.5 sm:px-2 py-0.5 bg-white/20 hover:bg-white/30 rounded-sm text-white font-medium transition-colors min-h-[18px] text-[10px] sm:text-xs"
             <div className="mt-2 sm:mt-3 text-center">
               <button
                 onClick={goToToday}
@@ -207,6 +234,9 @@ export default function CalendarPage() {
           </div>
 
           {/* 日历主体 */}
+          <div className="p-1 sm:p-1.5 lg:p-2">
+            {/* 星期标题 */}
+            <div className="grid grid-cols-7 mb-0.5 sm:mb-1">
           <div className="p-2 sm:p-3 lg:p-4">
             {/* 星期标题 */}
             <div className="grid grid-cols-7 mb-1 sm:mb-2 lg:mb-3">
@@ -215,6 +245,9 @@ export default function CalendarPage() {
                 return (
                   <div
                     key={day}
+                    className={`text-center py-0.5 text-[9px] sm:text-[10px] font-semibold ${
+                      isWeekend
+                        ? "text-teal-600"
                     className={`text-center py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold ${
                       isWeekend
                         ? "text-emerald-600"
@@ -228,6 +261,7 @@ export default function CalendarPage() {
             </div>
 
             {/* 日期网格 */}
+            <div className="grid grid-cols-7 gap-0.5">
             <div className="grid grid-cols-7 gap-0.5 sm:gap-1 lg:gap-1.5">
               {calendarDays.map((date, index) => {
                 const isWeekend = index % 7 === 0 || index % 7 === 6;
@@ -236,6 +270,20 @@ export default function CalendarPage() {
                   <div
                     key={index}
                     className={`
+                      aspect-square flex items-center justify-center rounded-xs sm:rounded-sm 
+                      text-[8px] sm:text-[10px] lg:text-xs font-medium
+                      transition-all duration-200
+                      min-h-[14px] sm:min-h-[16px] lg:min-h-[18px]
+                      ${date.month === "current"
+                        ? "bg-white border border-slate-200 hover:border-cyan-400 hover:shadow-sm cursor-pointer"
+                        : "bg-slate-50 text-slate-400 border border-transparent"
+                      }
+                      ${date.isToday
+                        ? "bg-gradient-to-br from-cyan-400 to-blue-500 text-white border-cyan-500 hover:from-cyan-500 hover:to-blue-600 shadow-sm"
+                        : ""
+                      }
+                      ${isWeekend && date.month === "current" && !date.isToday
+                        ? "text-teal-600 font-semibold"
                       aspect-square flex items-center justify-center rounded-sm sm:rounded-md 
                       text-[10px] sm:text-xs lg:text-sm font-medium
                       transition-all duration-200
@@ -262,6 +310,22 @@ export default function CalendarPage() {
           </div>
 
           {/* 日历底部图例 */}
+          <div className="bg-slate-50 px-2 sm:px-2.5 py-1 sm:py-1.5 border-t border-slate-200">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-[9px] sm:text-[10px]">
+              <div className="flex items-center">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-sm mr-0.5"></div>
+                <span className="text-slate-600">今天</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white border border-slate-200 rounded-sm mr-0.5"></div>
+                <span className="text-slate-600">当前月份</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-slate-50 rounded-sm mr-0.5"></div>
+                <span className="text-slate-600">其他月份</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white text-teal-600 border border-slate-200 rounded-sm mr-0.5 flex items-center justify-center text-[7px] sm:text-[9px] font-semibold">6</div>
           <div className="bg-slate-50 px-3 sm:px-4 py-2 sm:py-3 border-t border-slate-200">
             <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 lg:gap-4 text-[10px] sm:text-xs">
               <div className="flex items-center">
@@ -285,6 +349,13 @@ export default function CalendarPage() {
         </div>
 
         {/* 返回首页链接 */}
+        <div className="text-center mt-2 sm:mt-3">
+          <a
+            href="/"
+            className="inline-flex items-center text-teal-600 hover:text-teal-700 font-medium text-[10px] sm:text-xs"
+          >
+            <svg
+              className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1"
         <div className="text-center mt-3 sm:mt-4 lg:mt-6">
           <a
             href="/"

@@ -18,6 +18,19 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Leaderboard Persistence (Vercel)
+
+Global leaderboard data is stored in Upstash Redis, which is suitable for Vercel serverless deployments.
+
+Set these environment variables in Vercel Project Settings (or local `.env.local`):
+
+```bash
+UPSTASH_REDIS_REST_URL=...
+UPSTASH_REDIS_REST_TOKEN=...
+```
+
+Without these variables, leaderboard API requests will return a configuration error.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

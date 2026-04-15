@@ -12,14 +12,19 @@ function normalizeGameId(gameId: unknown): string {
 }
 
 export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const gameId = normalizeGameId(url.searchParams.get("gameId"));
-  if (!gameId) {
-    return NextResponse.json({ error: "gameId is required" }, { status: 400 });
-  }
+  try {
+    const url = new URL(request.url);
+    const gameId = normalizeGameId(url.searchParams.get("gameId"));
+    if (!gameId) {
+      return NextResponse.json({ error: "gameId is required" }, { status: 400 });
+    }
 
-  const entries = await getServerLeaderboard(gameId);
-  return NextResponse.json({ entries, limit: 20 });
+    const entries = await getServerLeaderboard(gameId);
+    return NextResponse.json({ entries, limit: 20 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "failed to load leaderboard";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
@@ -42,7 +47,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "score must be a number" }, { status: 400 });
   }
 
-  const result = await submitServerLeaderboardScore(gameId, score, name);
-  return NextResponse.json(result);
+  try {
+    const result = await submitServerLeaderboardScore(gameId, score, name);
+    return NextResponse.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "failed to submit score";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 

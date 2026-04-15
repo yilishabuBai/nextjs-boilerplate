@@ -2,7 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { getBestScore, setBestScore, touchRecentGame } from "@/core/game-engine/storage";
+import {
+  getBestScore,
+  getLeaderboard,
+  isScoreInTopLeaderboard,
+  setBestScore,
+  submitLeaderboardScore,
+  touchRecentGame,
+} from "@/core/game-engine/storage";
+import type { LeaderboardEntry } from "@/core/game-engine/types";
 
 const GAME_ID = "flappy-bird";
 
@@ -137,9 +145,11 @@ export default function FlappyBirdGame() {
   const [uiScore, setUiScore] = useState(0);
   const [best, setBest] = useState(0);
   const [assetsReady, setAssetsReady] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
   useEffect(() => {
     setBest(getBestScore(GAME_ID));
+    setLeaderboard(getLeaderboard(GAME_ID));
     touchRecentGame(GAME_ID);
     loadAssets()
       .then((assets) => {
@@ -170,6 +180,13 @@ export default function FlappyBirdGame() {
     const s = scoreRef.current;
     setBestScore(GAME_ID, s);
     setBest(getBestScore(GAME_ID));
+    if (isScoreInTopLeaderboard(GAME_ID, s)) {
+      const defaultName = `玩家${Math.max(1, Math.floor(Math.random() * 1000))}`;
+      const userInput = window.prompt("恭喜上榜！请输入你的名字（最多20字）", defaultName);
+      const name = userInput ?? defaultName;
+      const next = submitLeaderboardScore(GAME_ID, s, name);
+      setLeaderboard(next);
+    }
   }, []);
 
   const jump = useCallback(() => {
@@ -383,6 +400,31 @@ export default function FlappyBirdGame() {
         <p className="mt-6 text-center text-xs text-slate-500">
           提示：失败后可以立刻点击画布再来一局
         </p>
+
+        <section className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-base font-semibold text-white">排行榜 Top 20</h2>
+            <span className="text-xs text-slate-400">仅当前游戏</span>
+          </div>
+          {leaderboard.length === 0 ? (
+            <p className="text-sm text-slate-400">暂无上榜记录，快来拿下第一名。</p>
+          ) : (
+            <ol className="space-y-1.5">
+              {leaderboard.map((entry, idx) => (
+                <li
+                  key={entry.id}
+                  className="flex items-center justify-between rounded-lg bg-black/25 px-3 py-2 text-sm"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="w-8 text-slate-400">#{idx + 1}</span>
+                    <span className="truncate text-slate-100">{entry.name}</span>
+                  </div>
+                  <span className="font-semibold text-emerald-300">{entry.score}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
       </div>
     </div>
   );

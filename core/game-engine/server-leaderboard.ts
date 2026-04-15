@@ -41,26 +41,36 @@ function getRedis(): Redis {
   return redisClient;
 }
 
-function parseMember(raw: string): LeaderboardEntry | null {
+function toLeaderboardEntry(value: unknown): LeaderboardEntry | null {
+  const record = value as Record<string, unknown>;
+  if (
+    !value ||
+    typeof value !== "object" ||
+    typeof record.id !== "string" ||
+    typeof record.name !== "string" ||
+    typeof record.score !== "number" ||
+    typeof record.createdAt !== "string"
+  ) {
+    return null;
+  }
+  return {
+    id: record.id,
+    name: normalizeName(record.name),
+    score: normalizeScore(record.score),
+    createdAt: record.createdAt,
+  };
+}
+
+function parseMember(raw: unknown): LeaderboardEntry | null {
   try {
-    const value = JSON.parse(raw) as unknown;
-    const record = value as Record<string, unknown>;
-    if (
-      !value ||
-      typeof value !== "object" ||
-      typeof record.id !== "string" ||
-      typeof record.name !== "string" ||
-      typeof record.score !== "number" ||
-      typeof record.createdAt !== "string"
-    ) {
+    // Upstash may auto-deserialize JSON members to objects.
+    if (typeof raw === "object" && raw !== null) {
+      return toLeaderboardEntry(raw);
+    }
+    if (typeof raw !== "string") {
       return null;
     }
-    return {
-      id: record.id,
-      name: normalizeName(record.name),
-      score: normalizeScore(record.score),
-      createdAt: record.createdAt,
-    };
+    return toLeaderboardEntry(JSON.parse(raw) as unknown);
   } catch {
     return null;
   }
@@ -69,7 +79,7 @@ function parseMember(raw: string): LeaderboardEntry | null {
 export async function getServerLeaderboard(gameId: string): Promise<LeaderboardEntry[]> {
   const redis = getRedis();
   const key = keyByGameId(gameId);
-  const rawMembers = await redis.zrange<string[]>(key, 0, LEADERBOARD_LIMIT - 1, {
+  const rawMembers = await redis.zrange<unknown[]>(key, 0, LEADERBOARD_LIMIT - 1, {
     rev: true,
   });
   const parsed = rawMembers

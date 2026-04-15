@@ -2,14 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  getBestScore,
-  getLeaderboard,
-  isScoreInTopLeaderboard,
-  setBestScore,
-  submitLeaderboardScore,
-  touchRecentGame,
-} from "@/core/game-engine/storage";
+import { touchRecentGame } from "@/core/game-engine/storage";
 import type { LeaderboardEntry } from "@/core/game-engine/types";
 
 const GAME_ID = "flappy-bird";
@@ -127,6 +120,36 @@ function drawNumber(
   }
 }
 
+async function fetchLeaderboard(gameId: string): Promise<LeaderboardEntry[]> {
+  const res = await fetch(`/api/leaderboard?gameId=${encodeURIComponent(gameId)}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Failed to fetch leaderboard");
+  const data = (await res.json()) as { entries?: LeaderboardEntry[] };
+  return Array.isArray(data.entries) ? data.entries : [];
+}
+
+async function submitScore(
+  gameId: string,
+  score: number,
+  name: string
+): Promise<{ qualified: boolean; entries: LeaderboardEntry[] }> {
+  const res = await fetch("/api/leaderboard", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ gameId, score, name }),
+  });
+  if (!res.ok) throw new Error("Failed to submit score");
+  const data = (await res.json()) as {
+    qualified?: boolean;
+    entries?: LeaderboardEntry[];
+  };
+  return {
+    qualified: Boolean(data.qualified),
+    entries: Array.isArray(data.entries) ? data.entries : [],
+  };
+}
+
 export default function FlappyBirdGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
@@ -146,11 +169,18 @@ export default function FlappyBirdGame() {
   const [best, setBest] = useState(0);
   const [assetsReady, setAssetsReady] = useState(false);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
 
   useEffect(() => {
-    setBest(getBestScore(GAME_ID));
-    setLeaderboard(getLeaderboard(GAME_ID));
     touchRecentGame(GAME_ID);
+    fetchLeaderboard(GAME_ID)
+      .then((entries) => {
+        setLeaderboard(entries);
+        setBest(entries[0]?.score ?? 0);
+      })
+      .catch(() => {
+        setLeaderboardError("排行榜加载失败，请稍后重试");
+      });
     loadAssets()
       .then((assets) => {
         assetsRef.current = assets;
@@ -178,15 +208,20 @@ export default function FlappyBirdGame() {
     if (phaseRef.current !== "playing") return;
     phaseRef.current = "over";
     const s = scoreRef.current;
-    setBestScore(GAME_ID, s);
-    setBest(getBestScore(GAME_ID));
-    if (isScoreInTopLeaderboard(GAME_ID, s)) {
-      const defaultName = `玩家${Math.max(1, Math.floor(Math.random() * 1000))}`;
-      const userInput = window.prompt("恭喜上榜！请输入你的名字（最多20字）", defaultName);
-      const name = userInput ?? defaultName;
-      const next = submitLeaderboardScore(GAME_ID, s, name);
-      setLeaderboard(next);
-    }
+    const defaultName = `玩家${Math.max(1, Math.floor(Math.random() * 1000))}`;
+    const userInput = window.prompt(
+      "尝试冲榜！请输入你的名字（最多20字，不上榜不会保存）",
+      defaultName
+    );
+    const name = userInput ?? defaultName;
+    void submitScore(GAME_ID, s, name)
+      .then((result) => {
+        setLeaderboard(result.entries);
+        setBest(result.entries[0]?.score ?? 0);
+      })
+      .catch(() => {
+        setLeaderboardError("成绩提交失败，请检查网络后重试");
+      });
   }, []);
 
   const jump = useCallback(() => {
@@ -423,6 +458,9 @@ export default function FlappyBirdGame() {
                 </li>
               ))}
             </ol>
+          )}
+          {leaderboardError && (
+            <p className="mt-3 text-xs text-amber-300">{leaderboardError}</p>
           )}
         </section>
       </div>

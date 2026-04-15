@@ -4,7 +4,7 @@ import type { LeaderboardEntry } from "./types";
 const LEADERBOARD_LIMIT = 20;
 const KEY_PREFIX = "leaderboard";
 const REDIS_CONFIG_ERROR =
-  "Redis is not configured. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.";
+  "Redis is not configured. Set UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN or KV_REST_API_URL/KV_REST_API_TOKEN.";
 
 let redisClient: Redis | null = null;
 
@@ -31,8 +31,9 @@ function keyByGameId(gameId: string): string {
 
 function getRedis(): Redis {
   if (redisClient) return redisClient;
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
+  const token =
+    process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
   if (!url || !token) {
     throw new Error(REDIS_CONFIG_ERROR);
   }

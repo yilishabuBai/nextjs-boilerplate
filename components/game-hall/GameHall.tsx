@@ -85,25 +85,8 @@ export function GameHall() {
               多款小游戏一站畅玩。挑选一款，立刻开始——进度与最高分保存在本机浏览器。
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/calendar"
-              className="rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
-            >
-              日历
-            </Link>
-            <Link
-              href="/about"
-              className="rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
-            >
-              关于
-            </Link>
-            <Link
-              href="/sentry-test"
-              className="rounded-xl border border-white/10 bg-slate-800/80 px-4 py-2.5 text-sm text-slate-300 transition hover:text-white"
-            >
-              Sentry 测试
-            </Link>
+          <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300">
+            专注游戏模式
           </div>
         </div>
       </header>

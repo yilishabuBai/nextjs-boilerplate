@@ -1,13 +1,12 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
+import { Redis } from "@upstash/redis";
 import type { LeaderboardEntry } from "./types";
 
 const LEADERBOARD_LIMIT = 20;
-const DATA_FILE_PATH = path.join(process.cwd(), "data", "leaderboards.json");
+const KEY_PREFIX = "leaderboard";
+const REDIS_CONFIG_ERROR =
+  "Redis is not configured. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.";
 
-type LeaderboardStore = Record<string, LeaderboardEntry[]>;
-
-let writeQueue: Promise<void> = Promise.resolve();
+let redisClient: Redis | null = null;
 
 function normalizeName(name: string): string {
   const trimmed = name.trim();
@@ -26,59 +25,56 @@ function sortLeaderboard(entries: LeaderboardEntry[]): LeaderboardEntry[] {
   });
 }
 
-async function readStore(): Promise<LeaderboardStore> {
+function keyByGameId(gameId: string): string {
+  return `${KEY_PREFIX}:${gameId}`;
+}
+
+function getRedis(): Redis {
+  if (redisClient) return redisClient;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) {
+    throw new Error(REDIS_CONFIG_ERROR);
+  }
+  redisClient = new Redis({ url, token });
+  return redisClient;
+}
+
+function parseMember(raw: string): LeaderboardEntry | null {
   try {
-    const raw = await readFile(DATA_FILE_PATH, "utf8");
-    const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== "object") return {};
-    return parsed as LeaderboardStore;
+    const value = JSON.parse(raw) as unknown;
+    const record = value as Record<string, unknown>;
+    if (
+      !value ||
+      typeof value !== "object" ||
+      typeof record.id !== "string" ||
+      typeof record.name !== "string" ||
+      typeof record.score !== "number" ||
+      typeof record.createdAt !== "string"
+    ) {
+      return null;
+    }
+    return {
+      id: record.id,
+      name: normalizeName(record.name),
+      score: normalizeScore(record.score),
+      createdAt: record.createdAt,
+    };
   } catch {
-    return {};
+    return null;
   }
 }
 
-async function writeStore(store: LeaderboardStore): Promise<void> {
-  await mkdir(path.dirname(DATA_FILE_PATH), { recursive: true });
-  await writeFile(DATA_FILE_PATH, JSON.stringify(store, null, 2), "utf8");
-}
-
-function sanitizeEntries(entries: unknown): LeaderboardEntry[] {
-  if (!Array.isArray(entries)) return [];
-  const sanitized = entries
-    .map((item) => {
-      if (
-        typeof item !== "object" ||
-        !item ||
-        typeof item.id !== "string" ||
-        typeof item.name !== "string" ||
-        typeof item.score !== "number" ||
-        typeof item.createdAt !== "string"
-      ) {
-        return null;
-      }
-      return {
-        id: item.id,
-        name: normalizeName(item.name),
-        score: normalizeScore(item.score),
-        createdAt: item.createdAt,
-      };
-    })
-    .filter((item): item is LeaderboardEntry => Boolean(item));
-  return sortLeaderboard(sanitized).slice(0, LEADERBOARD_LIMIT);
-}
-
-function withWriteLock<T>(fn: () => Promise<T>): Promise<T> {
-  const next = writeQueue.then(fn, fn);
-  writeQueue = next.then(
-    () => undefined,
-    () => undefined
-  );
-  return next;
-}
-
 export async function getServerLeaderboard(gameId: string): Promise<LeaderboardEntry[]> {
-  const store = await readStore();
-  return sanitizeEntries(store[gameId]);
+  const redis = getRedis();
+  const key = keyByGameId(gameId);
+  const rawMembers = await redis.zrange<string[]>(key, 0, LEADERBOARD_LIMIT - 1, {
+    rev: true,
+  });
+  const parsed = rawMembers
+    .map((raw) => parseMember(raw))
+    .filter((entry): entry is LeaderboardEntry => Boolean(entry));
+  return sortLeaderboard(parsed).slice(0, LEADERBOARD_LIMIT);
 }
 
 export async function submitServerLeaderboardScore(
@@ -91,27 +87,27 @@ export async function submitServerLeaderboardScore(
     return { qualified: false, entries: await getServerLeaderboard(gameId) };
   }
 
-  return withWriteLock(async () => {
-    const store = await readStore();
-    const current = sanitizeEntries(store[gameId]);
-    const minScore = current[current.length - 1]?.score ?? 0;
-    const qualified =
-      current.length < LEADERBOARD_LIMIT || normalizedScore >= minScore;
+  const redis = getRedis();
+  const key = keyByGameId(gameId);
+  const current = await getServerLeaderboard(gameId);
+  const minScore = current[current.length - 1]?.score ?? 0;
+  const qualified = current.length < LEADERBOARD_LIMIT || normalizedScore >= minScore;
+  if (!qualified) {
+    return { qualified: false, entries: current };
+  }
 
-    if (!qualified) {
-      return { qualified: false, entries: current };
-    }
+  const nextEntry: LeaderboardEntry = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: normalizeName(name),
+    score: normalizedScore,
+    createdAt: new Date().toISOString(),
+  };
 
-    const nextEntry: LeaderboardEntry = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      name: normalizeName(name),
-      score: normalizedScore,
-      createdAt: new Date().toISOString(),
-    };
-    const next = sortLeaderboard([...current, nextEntry]).slice(0, LEADERBOARD_LIMIT);
-    store[gameId] = next;
-    await writeStore(store);
-    return { qualified: true, entries: next };
-  });
+  await redis.zadd(key, { score: normalizedScore, member: JSON.stringify(nextEntry) });
+  const size = await redis.zcard(key);
+  if (size > LEADERBOARD_LIMIT) {
+    await redis.zremrangebyrank(key, 0, size - LEADERBOARD_LIMIT - 1);
+  }
+  return { qualified: true, entries: await getServerLeaderboard(gameId) };
 }
 

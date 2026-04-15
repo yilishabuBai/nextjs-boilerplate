@@ -124,8 +124,10 @@ async function fetchLeaderboard(gameId: string): Promise<LeaderboardEntry[]> {
   const res = await fetch(`/api/leaderboard?gameId=${encodeURIComponent(gameId)}`, {
     cache: "no-store",
   });
-  if (!res.ok) throw new Error("Failed to fetch leaderboard");
-  const data = (await res.json()) as { entries?: LeaderboardEntry[] };
+  const data = (await res.json()) as { entries?: LeaderboardEntry[]; error?: string };
+  if (!res.ok) {
+    throw new Error(data.error ?? "Failed to fetch leaderboard");
+  }
   return Array.isArray(data.entries) ? data.entries : [];
 }
 
@@ -139,11 +141,14 @@ async function submitScore(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ gameId, score, name }),
   });
-  if (!res.ok) throw new Error("Failed to submit score");
   const data = (await res.json()) as {
     qualified?: boolean;
     entries?: LeaderboardEntry[];
+    error?: string;
   };
+  if (!res.ok) {
+    throw new Error(data.error ?? "Failed to submit score");
+  }
   return {
     qualified: Boolean(data.qualified),
     entries: Array.isArray(data.entries) ? data.entries : [],

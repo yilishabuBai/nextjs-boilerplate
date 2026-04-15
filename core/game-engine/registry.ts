@@ -10,15 +10,6 @@ export const GAMES: readonly GameManifest[] = [
     emoji: "🐦",
     gradient: "from-sky-400 to-cyan-600",
   },
-  {
-    slug: "interactive-video",
-    title: "完蛋！我被美女包围了",
-    shortDescription: "互动视觉小说，选择分支与好感度系统。",
-    category: "story",
-    difficulty: "easy",
-    emoji: "💕",
-    gradient: "from-pink-400 to-purple-600",
-  },
 ];
 
 export function getGameBySlug(slug: string): GameManifest | undefined {

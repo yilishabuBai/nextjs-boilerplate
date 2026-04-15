@@ -2,11 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getGameBySlug } from "@/core/game-engine/registry";
 import FlappyBirdGame from "@/games/flappy-bird/FlappyBirdGame";
-import InteractiveVideoGame from "@/games/interactive-video/InteractiveVideoGame";
 
 const GAME_COMPONENTS = {
   "flappy-bird": FlappyBirdGame,
-  "interactive-video": InteractiveVideoGame,
 } as const;
 
 type GameSlug = keyof typeof GAME_COMPONENTS;

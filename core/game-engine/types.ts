@@ -18,3 +18,10 @@ export interface GameScoreRecord {
   bestScore: number;
   updatedAt: string;
 }
+
+export interface LeaderboardEntry {
+  id: string;
+  name: string;
+  score: number;
+  createdAt: string;
+}

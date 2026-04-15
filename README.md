@@ -29,7 +29,14 @@ UPSTASH_REDIS_REST_URL=...
 UPSTASH_REDIS_REST_TOKEN=...
 ```
 
-Without these variables, leaderboard API requests will return a configuration error.
+If your project is using Vercel KV integration defaults, this app also accepts:
+
+```bash
+KV_REST_API_URL=...
+KV_REST_API_TOKEN=...
+```
+
+Without either variable pair, leaderboard API requests will return a configuration error.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

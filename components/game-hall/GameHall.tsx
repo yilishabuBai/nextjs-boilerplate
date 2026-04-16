@@ -86,7 +86,7 @@ export function GameHall() {
             </p>
           </div>
           <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300">
-            专注游戏模式
+            沉浸游戏时光
           </div>
         </div>
       </header>

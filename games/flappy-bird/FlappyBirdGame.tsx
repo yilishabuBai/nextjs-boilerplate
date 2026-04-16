@@ -15,15 +15,22 @@ const GRAVITY = 0.42;
 const JUMP = -8.2;
 const PIPE_W = 52;
 const PIPE_SPEED = 3.2;
-const GAP = 150;
-const SPAWN_EVERY = 2000;
 const GROUND_H = 112;
+const MIN_GAP = 126;
+const MAX_GAP = 170;
+const MIN_PIPE_SPACING = 170;
+const MAX_PIPE_SPACING = 260;
+const PIPE_SPAWN_BUFFER = 140;
+const PIPE_SPRITE_H = 320;
+const PIPE_CAP_H = 26;
+const PIPE_OVERLAP_PX = 1;
 
 type GamePhase = "idle" | "playing" | "over";
 
 interface Pipe {
   x: number;
   gapCenter: number;
+  gapSize: number;
   passed: boolean;
 }
 
@@ -37,10 +44,89 @@ interface FlappyAssets {
   digits: HTMLImageElement[];
 }
 
-function randomGapCenter(): number {
-  const margin = 100;
-  const playableBottom = H - GROUND_H - margin;
-  return margin + Math.random() * (playableBottom - margin - GAP);
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function getGapSize(): number {
+  return Math.round(MIN_GAP + Math.random() * (MAX_GAP - MIN_GAP));
+}
+
+function getNextPipeSpacing(): number {
+  return Math.round(
+    MIN_PIPE_SPACING + Math.random() * (MAX_PIPE_SPACING - MIN_PIPE_SPACING)
+  );
+}
+
+function randomGapCenter(gapSize: number): number {
+  const margin = 84;
+  const playableHeight = H - GROUND_H;
+  const minCenter = margin + gapSize / 2;
+  const maxCenter = playableHeight - margin - gapSize / 2;
+  return minCenter + Math.random() * (maxCenter - minCenter);
+}
+
+function createPipe(startX: number): Pipe {
+  const gapSize = getGapSize();
+  return {
+    x: startX,
+    gapCenter: randomGapCenter(gapSize),
+    gapSize,
+    passed: false,
+  };
+}
+
+function drawPipeSection(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  height: number
+) {
+  const imageHeight = image.height || PIPE_SPRITE_H;
+  const capHeight = Math.min(PIPE_CAP_H, imageHeight);
+  const bodySourceHeight = Math.max(1, imageHeight - capHeight);
+
+  if (height <= 0) return;
+
+  if (height <= capHeight) {
+    ctx.drawImage(
+      image,
+      0,
+      0,
+      image.width,
+      height,
+      x,
+      y,
+      PIPE_W,
+      height
+    );
+    return;
+  }
+
+  const bodyHeight = height - capHeight + PIPE_OVERLAP_PX;
+  ctx.drawImage(
+    image,
+    0,
+    capHeight,
+    image.width,
+    bodySourceHeight,
+    x,
+    y,
+    PIPE_W,
+    bodyHeight
+  );
+  ctx.drawImage(
+    image,
+    0,
+    0,
+    image.width,
+    capHeight,
+    x,
+    y + bodyHeight - PIPE_OVERLAP_PX,
+    PIPE_W,
+    capHeight
+  );
 }
 
 function circleRectOverlap(
@@ -164,7 +250,6 @@ export default function FlappyBirdGame() {
   const birdVelRef = useRef(0);
   const pipesRef = useRef<Pipe[]>([]);
   const scoreRef = useRef(0);
-  const lastSpawnRef = useRef(0);
   const baseOffsetRef = useRef(0);
   const assetsRef = useRef<FlappyAssets | null>(null);
   const birdFrameRef = useRef(0);
@@ -202,7 +287,6 @@ export default function FlappyBirdGame() {
     birdVelRef.current = 0;
     pipesRef.current = [];
     scoreRef.current = 0;
-    lastSpawnRef.current = performance.now();
     baseOffsetRef.current = 0;
     birdFrameRef.current = 0;
     birdFrameTsRef.current = 0;
@@ -233,10 +317,7 @@ export default function FlappyBirdGame() {
     if (phaseRef.current === "idle") {
       phaseRef.current = "playing";
       birdVelRef.current = JUMP;
-      lastSpawnRef.current = performance.now();
-      pipesRef.current = [
-        { x: W + 40, gapCenter: randomGapCenter(), passed: false },
-      ];
+      pipesRef.current = [createPipe(W + PIPE_SPAWN_BUFFER)];
     } else if (phaseRef.current === "playing") {
       birdVelRef.current = JUMP;
     } else {
@@ -267,6 +348,7 @@ export default function FlappyBirdGame() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
 
     const draw = (ts: number) => {
       const last = lastTsRef.current || ts;
@@ -296,14 +378,19 @@ export default function FlappyBirdGame() {
           pipes.shift();
         }
 
-        if (ts - lastSpawnRef.current > SPAWN_EVERY) {
-          lastSpawnRef.current = ts;
-          pipes.push({ x: W + 30, gapCenter: randomGapCenter(), passed: false });
+        const lastPipe = pipes[pipes.length - 1];
+        const nextSpacing = getNextPipeSpacing();
+        const nextPipeThreshold = W - nextSpacing;
+        if (!lastPipe || lastPipe.x <= nextPipeThreshold) {
+          const startX = lastPipe
+            ? lastPipe.x + nextSpacing
+            : W + PIPE_SPAWN_BUFFER;
+          pipes.push(createPipe(startX));
         }
 
         for (const p of pipes) {
-          const topH = p.gapCenter - GAP / 2;
-          const bottomY = p.gapCenter + GAP / 2;
+          const topH = p.gapCenter - p.gapSize / 2;
+          const bottomY = p.gapCenter + p.gapSize / 2;
 
           if (
             circleRectOverlap(BIRD_X, birdYRef.current, BIRD_R, p.x, 0, PIPE_W, topH) ||
@@ -338,13 +425,13 @@ export default function FlappyBirdGame() {
       ctx.drawImage(assets.background, 0, 0, W, H);
 
       for (const p of pipesRef.current) {
-        const topH = p.gapCenter - GAP / 2;
-        const bottomY = p.gapCenter + GAP / 2;
-        ctx.drawImage(assets.pipeGreen, p.x, bottomY, PIPE_W, groundY - bottomY);
+        const topH = p.gapCenter - p.gapSize / 2;
+        const bottomY = p.gapCenter + p.gapSize / 2;
+        drawPipeSection(ctx, assets.pipeGreen, p.x, bottomY, groundY - bottomY);
         ctx.save();
         ctx.translate(p.x + PIPE_W / 2, topH / 2);
         ctx.scale(1, -1);
-        ctx.drawImage(assets.pipeGreen, -PIPE_W / 2, -topH / 2, PIPE_W, topH);
+        drawPipeSection(ctx, assets.pipeGreen, -PIPE_W / 2, -topH / 2, topH);
         ctx.restore();
       }
 

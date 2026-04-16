@@ -4,35 +4,30 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { touchRecentGame } from "@/core/game-engine/storage";
 import type { LeaderboardEntry } from "@/core/game-engine/types";
+import {
+  GROUND_H,
+  H,
+  PIPE_PRELOAD_DISTANCE,
+  PIPE_W,
+  W,
+  createInitialPipeQueue,
+  createPipe,
+  getGroundTileXs,
+  getNextPipeSpacing,
+  type Pipe,
+} from "@/games/flappy-bird/pipe-layout";
 
 const GAME_ID = "flappy-bird";
-
-const W = 400;
-const H = 600;
 const BIRD_X = 100;
 const BIRD_R = 16;
 const GRAVITY = 0.42;
 const JUMP = -8.2;
-const PIPE_W = 52;
 const PIPE_SPEED = 3.2;
-const GROUND_H = 112;
-const MIN_GAP = 126;
-const MAX_GAP = 170;
-const MIN_PIPE_SPACING = 170;
-const MAX_PIPE_SPACING = 260;
-const PIPE_SPAWN_BUFFER = 140;
 const PIPE_SPRITE_H = 320;
 const PIPE_CAP_H = 26;
 const PIPE_OVERLAP_PX = 1;
 
 type GamePhase = "idle" | "playing" | "over";
-
-interface Pipe {
-  x: number;
-  gapCenter: number;
-  gapSize: number;
-  passed: boolean;
-}
 
 interface FlappyAssets {
   background: HTMLImageElement;
@@ -46,34 +41,6 @@ interface FlappyAssets {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
-}
-
-function getGapSize(): number {
-  return Math.round(MIN_GAP + Math.random() * (MAX_GAP - MIN_GAP));
-}
-
-function getNextPipeSpacing(): number {
-  return Math.round(
-    MIN_PIPE_SPACING + Math.random() * (MAX_PIPE_SPACING - MIN_PIPE_SPACING)
-  );
-}
-
-function randomGapCenter(gapSize: number): number {
-  const margin = 84;
-  const playableHeight = H - GROUND_H;
-  const minCenter = margin + gapSize / 2;
-  const maxCenter = playableHeight - margin - gapSize / 2;
-  return minCenter + Math.random() * (maxCenter - minCenter);
-}
-
-function createPipe(startX: number): Pipe {
-  const gapSize = getGapSize();
-  return {
-    x: startX,
-    gapCenter: randomGapCenter(gapSize),
-    gapSize,
-    passed: false,
-  };
 }
 
 function drawPipeSection(
@@ -108,24 +75,24 @@ function drawPipeSection(
   ctx.drawImage(
     image,
     0,
-    capHeight,
+    0,
     image.width,
-    bodySourceHeight,
+    capHeight,
     x,
     y,
     PIPE_W,
-    bodyHeight
+    capHeight
   );
   ctx.drawImage(
     image,
     0,
-    0,
-    image.width,
     capHeight,
+    image.width,
+    bodySourceHeight,
     x,
-    y + bodyHeight - PIPE_OVERLAP_PX,
+    y + capHeight - PIPE_OVERLAP_PX,
     PIPE_W,
-    capHeight
+    bodyHeight
   );
 }
 
@@ -285,13 +252,17 @@ export default function FlappyBirdGame() {
     phaseRef.current = "idle";
     birdYRef.current = H / 2;
     birdVelRef.current = 0;
-    pipesRef.current = [];
+    pipesRef.current = createInitialPipeQueue();
     scoreRef.current = 0;
     baseOffsetRef.current = 0;
     birdFrameRef.current = 0;
     birdFrameTsRef.current = 0;
     setUiScore(0);
   }, []);
+
+  useEffect(() => {
+    resetGame();
+  }, [resetGame]);
 
   const endGame = useCallback(() => {
     if (phaseRef.current !== "playing") return;
@@ -317,7 +288,6 @@ export default function FlappyBirdGame() {
     if (phaseRef.current === "idle") {
       phaseRef.current = "playing";
       birdVelRef.current = JUMP;
-      pipesRef.current = [createPipe(W + PIPE_SPAWN_BUFFER)];
     } else if (phaseRef.current === "playing") {
       birdVelRef.current = JUMP;
     } else {
@@ -378,14 +348,14 @@ export default function FlappyBirdGame() {
           pipes.shift();
         }
 
-        const lastPipe = pipes[pipes.length - 1];
-        const nextSpacing = getNextPipeSpacing();
-        const nextPipeThreshold = W - nextSpacing;
-        if (!lastPipe || lastPipe.x <= nextPipeThreshold) {
-          const startX = lastPipe
-            ? lastPipe.x + nextSpacing
-            : W + PIPE_SPAWN_BUFFER;
-          pipes.push(createPipe(startX));
+        if (!pipes.length) {
+          pipes.push(...createInitialPipeQueue());
+        }
+
+        while (pipes[pipes.length - 1].x < W + PIPE_PRELOAD_DISTANCE) {
+          const lastPipe = pipes[pipes.length - 1];
+          const nextSpacing = getNextPipeSpacing();
+          pipes.push(createPipe(lastPipe.x + nextSpacing));
         }
 
         for (const p of pipes) {
@@ -451,8 +421,9 @@ export default function FlappyBirdGame() {
 
       const baseWidth = assets.base.width || 336;
       const offset = baseOffsetRef.current % baseWidth;
-      ctx.drawImage(assets.base, -offset, groundY, baseWidth, GROUND_H);
-      ctx.drawImage(assets.base, baseWidth - offset, groundY, baseWidth, GROUND_H);
+      for (const tileX of getGroundTileXs(offset, baseWidth, W)) {
+        ctx.drawImage(assets.base, tileX, groundY, baseWidth, GROUND_H);
+      }
       drawNumber(ctx, assets.digits, scoreRef.current, W / 2, 20);
 
       if (phaseRef.current === "idle") {

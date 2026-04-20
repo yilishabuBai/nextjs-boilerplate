@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest"
+    "test": "jest --coverage",
+    "test:ci": "jest --coverage --coverageReporters=lcov --coverageReporters=text"
   },
   "dependencies": {
     "@upstash/redis": "^1.37.0",
